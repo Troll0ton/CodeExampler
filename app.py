@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-import requests
 import base64
+
+import requests
+from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
@@ -13,19 +14,20 @@ LANGUAGE_EXTENSIONS = {
     'rust': 'rs'
 }
 
-GITHUB_TOKEN = 'ТОКЕН СЮДА'
+GITHUB_TOKEN = ''
 
 headers = {
     'Accept': 'application/vnd.github.v3+json',
     'Authorization': f'Bearer {GITHUB_TOKEN}'
 }
 
-def search_code(query, language, max_results=40):
+
+def search_code(query, language, max_results=50):
     url = 'https://api.github.com/search/code'
     extensions = LANGUAGE_EXTENSIONS.get(language, '')
     params = {
         'q': f'"{query}" in:file extension:{extensions}',
-        'per_page': max_results * 2
+        'per_page': max_results
     }
 
     response = requests.get(url, params=params, headers=headers)
@@ -37,22 +39,20 @@ def search_code(query, language, max_results=40):
     potential_results = data.get('items', [])
 
     valid_results = []
-    for item in potential_results:
-        if len(valid_results) >= max_results:
-            break
 
+    for item in potential_results:
         repo_name = item['repository']['full_name']
         file_path = item['path']
-        content = get_file_content(repo_name, file_path)
-        if query in content:
-            valid_results.append({
-                'repo_name': repo_name,
-                'file_name': item['name'],
-                'file_path': file_path,
-                'url': item['html_url']
-            })
+
+        valid_results.append({
+            'repo_name': repo_name,
+            'file_name': item['name'],
+            'file_path': file_path,
+            'url': item['html_url']
+        })
 
     return valid_results
+
 
 def get_file_content(repo_name, file_path):
     url = f'https://api.github.com/repos/{repo_name}/contents/{file_path}'
@@ -64,6 +64,7 @@ def get_file_content(repo_name, file_path):
     content = response.json().get('content', '')
     decoded_content = base64.b64decode(content).decode('utf-8', errors='ignore')
     return decoded_content
+
 
 @app.route('/', methods=['GET'])
 def index():
@@ -84,6 +85,7 @@ def index():
 
     return render_template('index.html', results=results, query=query, selected_language=language, languages=languages)
 
+
 @app.route('/view_code')
 def view_code():
     repo = request.args.get('repo')
@@ -98,7 +100,9 @@ def view_code():
 
     github_url = f'https://github.com/{repo}/blob/master/{path}'
 
-    return render_template('view_code.html', code=code, query=query, repo=repo, path=path, language=language, github_url=github_url)
+    return render_template('view_code.html', code=code, query=query, repo=repo, path=path, language=language,
+                           github_url=github_url)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
