@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ repo }} - {{ path }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h2>{{ repo }} / {{ path }}</h2>
+    <a href="{{ github_url }}" target="_blank">🌐 Открыть на GitHub</a>
+    <pre>{{ code|replace(query, '<span class="highlight">' + query + '</span>')|safe }}</pre>
+    <a href="{{ url_for('index', query=query, language=language) }}">⬅️ Назад к поиску</a>
+</div>
+</body>
+</html>

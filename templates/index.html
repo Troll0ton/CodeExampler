@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Code Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>🔍 GitHub Code Search</h1>
+    <form method="get">
+        <input type="text" name="query" placeholder="Введите код" required value="{{ query or '' }}">
+        <select name="language">
+            {% for lang in languages %}
+            <option value="{{ lang }}" {% if lang== selected_language %}selected{% endif %}>
+                {{ lang|capitalize }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Искать</button>
+    </form>
+
+    {% if results %}
+    <div class="results">
+        {% for item in results %}
+        <div class="repo">
+            📄 <a
+                href="{{ url_for('view_code', repo=item.repo_name, path=item.file_path, query=query, language=selected_language) }}">
+            {{ item.file_name }}
+        </a> — {{ item.repo_name }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>
